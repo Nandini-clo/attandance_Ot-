@@ -1,25 +1,19 @@
+# sheets_backup.py
+
 import gspread
-from google.oauth2.service_account import Credentials
-import os
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Define scope
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+def append_to_sheet(row_data):
+    try:
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name("sheets_key.json", scope)
+        client = gspread.authorize(creds)
 
-# Connect to service account
-def append_to_sheet(data):
-    SERVICE_ACCOUNT_FILE = 'google_sheets_key.json'  # 🟡 Replace with your actual file
-    SPREADSHEET_ID = '10utjUxw0Zs8i-W623jaw_Fa6GWLuXT-0fuROK2zGQl4'  # 🟡 Replace with your Sheet ID
+        sheet = client.open("Employee_Attendance_Backup").sheet1  # 🔁 your sheet name here
+        sheet.append_row(list(row_data.values()))
+        print(f"✅ Data appended successfully to Google Sheet: {row_data}")
+        return True, f"Appended: {row_data}"
 
-    credentials = Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE,
-        scopes=SCOPES
-    )
-    client = gspread.authorize(credentials)
-    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
-
-    # Convert dict to list of values (ensure consistent column order)
-    ordered_keys = sorted(data.keys())
-    row = [data.get(k, "") for k in ordered_keys]
-
-    # Append to sheet
-    sheet.append_row(row)
+    except Exception as e:
+        print(f"⚠️ Google Sheets backup failed: {e}")
+        return False, str(e)

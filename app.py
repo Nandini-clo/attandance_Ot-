@@ -42,16 +42,18 @@ try:
 except json.JSONDecodeError as e:
     raise ValueError(f"Invalid SHEETS_KEY_JSON format: {e}")
 cred = credentials.Certificate("firebase_key.json")
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
 db = firestore.client()
 try:
     with open("firebase_key.json") as f:
         firebase_key = json.load(f)
 except json.JSONDecodeError as e:
     raise ValueError(f"Invalid FIREBASE_KEY_JSON format: {e}")
-
-
-
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_key)
+    firebase_admin.initialize_app(cred)
 
 # 🔐 Firebase Initialization
 try:
